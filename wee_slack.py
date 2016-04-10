@@ -621,6 +621,8 @@ class Channel(object):
             set_read_marker = True
         elif message.find(self.server.nick.encode('utf-8')) > -1:
             tags = ",notify_highlight,log1"
+        elif slack_should_highlight_words and w.string_has_highlight(message, slack_highlight_words.encode('utf-8')):
+            tags = ",notify_highlight"
         elif user != self.server.nick and self.name in self.server.users:
             tags = ",notify_private,notify_message,log1"
         elif self.muted:
@@ -2117,7 +2119,7 @@ def create_slack_debug_buffer():
 
 def config_changed_cb(data, option, value):
     global slack_api_token, distracting_channels, colorize_nicks, colorize_private_chats, slack_debug, debug_mode, \
-        unfurl_ignore_alt_text
+        slack_should_highlight_words, slack_highlight_words, unfurl_ignore_alt_text
 
     slack_api_token = w.config_get_plugin("slack_api_token")
 
@@ -2125,6 +2127,8 @@ def config_changed_cb(data, option, value):
         slack_api_token = w.string_eval_expression(slack_api_token, {}, {}, {})
 
     distracting_channels = [x.strip() for x in w.config_get_plugin("distracting_channels").split(',')]
+    slack_should_highlight_words = w.config_get_plugin("slack_should_highlight_words") == "1"
+    slack_highlight_words = w.config_get_plugin("slack_highlight_words")
     colorize_nicks = w.config_get_plugin('colorize_nicks') == "1"
     debug_mode = w.config_get_plugin("debug_mode").lower()
     if debug_mode != '' and debug_mode != 'false':
@@ -2186,6 +2190,10 @@ if __name__ == "__main__":
                 w.config_set_plugin('slack_api_token', "INSERT VALID KEY HERE!")
             if not w.config_get_plugin('distracting_channels'):
                 w.config_set_plugin('distracting_channels', "")
+            if not w.config_get_plugin('slack_should_highlight_words'):
+                w.config_set_plugin('slack_should_highlight_words', "0")
+            if not w.config_get_plugin('slack_highlight_words'):
+                w.config_set_plugin('slack_highlight_words', "!channel,!here,!everyone")
             if not w.config_get_plugin('debug_mode'):
                 w.config_set_plugin('debug_mode', "")
             if not w.config_get_plugin('colorize_nicks'):
@@ -2199,8 +2207,7 @@ if __name__ == "__main__":
             if not w.config_get_plugin('switch_buffer_on_join'):
                 w.config_set_plugin('switch_buffer_on_join', "1")
 
-            if w.config_get_plugin('channels_not_on_current_server_color'):
-                w.config_option_unset('channels_not_on_current_server_color')
+            w.config_option_unset('channels_not_on_current_server_color')
 
             # Global var section
             slack_debug = None
