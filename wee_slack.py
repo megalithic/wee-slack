@@ -427,7 +427,7 @@ class Channel(object):
         if channel_buffer != main_weechat_buffer:
             self.channel_buffer = channel_buffer
             w.buffer_set(self.channel_buffer, "localvar_set_nick", self.server.nick)
-#            w.buffer_set(self.channel_buffer, "highlight_words", self.server.nick)
+            # w.buffer_set(self.channel_buffer, "highlight_words", self.server.nick)
         else:
             self.channel_buffer = None
         channels.update_hashtable()
@@ -622,7 +622,7 @@ class Channel(object):
         elif message.find(self.server.nick.encode('utf-8')) > -1:
             tags = ",notify_highlight,log1"
         elif slack_should_highlight_words and w.string_has_highlight(message, slack_highlight_words.encode('utf-8')):
-            tags = ",notify_highlight"
+            tags = ",notify_highlight,irc_privmsg"
         elif user != self.server.nick and self.name in self.server.users:
             tags = ",notify_private,notify_message,log1"
         elif self.muted:
@@ -2193,7 +2193,7 @@ if __name__ == "__main__":
             if not w.config_get_plugin('slack_should_highlight_words'):
                 w.config_set_plugin('slack_should_highlight_words', "0")
             if not w.config_get_plugin('slack_highlight_words'):
-                w.config_set_plugin('slack_highlight_words', "!channel,!here,!everyone")
+                w.config_set_plugin('slack_highlight_words', "!channel,!here,!everyone,!group")
             if not w.config_get_plugin('debug_mode'):
                 w.config_set_plugin('debug_mode', "")
             if not w.config_get_plugin('colorize_nicks'):
