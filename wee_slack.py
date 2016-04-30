@@ -608,6 +608,10 @@ class Channel(object):
                 self.current_short_name = new_name
                 w.buffer_set(self.channel_buffer, "short_name", new_name)
 
+    # should we notify weechat of highlighted words
+    def should_notify_highlights(message):
+        return slack_should_highlight_words and w.string_has_highlight(message, slack_highlight_words.encode('utf-8'))
+
     def buffer_prnt(self, user='unknown_user', message='no message', time=0):
         """
         writes output (message) to a buffer (channel)
@@ -621,16 +625,22 @@ class Channel(object):
             set_read_marker = True
         elif message.find(self.server.nick.encode('utf-8')) > -1:
             tags = ",notify_highlight,log1"
-        elif slack_should_highlight_words and w.string_has_highlight(message, slack_highlight_words.encode('utf-8')):
-            tags = ",notify_highlight,irc_privmsg"
+            if should_notify_highlights(messages):
+                tags = ",notify_private,notify_message,irc_privmsg"
+        elif should_notify_highlights(message):
+            tags = ",notify_private,notify_message,irc_privmsg"
         elif user != self.server.nick and self.name in self.server.users:
             tags = ",notify_private,notify_message,log1"
+            if should_notify_highlights(message):
+                tags = ",notify_highlight,irc_privmsg"
         elif self.muted:
             tags = ",no_highlight,notify_none,logger_backlog_end"
         elif user in [x.strip() for x in w.prefix("join"), w.prefix("quit")]:
             tags = ",irc_smart_filter"
         else:
             tags = ",notify_message,log1"
+            if should_notify_highlights(message):
+                tags = ",irc_privmsg"
         #don't write these to local log files
         #tags += ",no_log"
         time_int = int(time_float)
