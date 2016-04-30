@@ -427,7 +427,7 @@ class Channel(object):
         if channel_buffer != main_weechat_buffer:
             self.channel_buffer = channel_buffer
             w.buffer_set(self.channel_buffer, "localvar_set_nick", self.server.nick)
-            # w.buffer_set(self.channel_buffer, "highlight_words", self.server.nick)
+            w.buffer_set(self.channel_buffer, "highlight_words", self.server.nick)
         else:
             self.channel_buffer = None
         channels.update_hashtable()
