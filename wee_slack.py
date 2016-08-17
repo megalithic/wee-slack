@@ -1050,7 +1050,8 @@ def msg_command_cb(data, current_buffer, args):
         server = servers.find(current_domain_name())
         if server:
             channel = server.channels.find(who)
-            channel.send_message(message)
+            if channel:
+                channel.send_message(message)
     return w.WEECHAT_RC_OK_EAT
 
 
